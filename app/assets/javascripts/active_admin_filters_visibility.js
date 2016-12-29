@@ -111,7 +111,177 @@
     // Plugin Storage method
     $.fn.activeAdminFiltersVisibility.storage = function(storageUniqId) {
         // https://github.com/tsironis/lockr
-        var Lockr = function(){"use strict";Array.prototype.indexOf||(Array.prototype.indexOf=function(a){var b=this.length>>>0,c=Number(arguments[1])||0;for(c=c<0?Math.ceil(c):Math.floor(c),c<0&&(c+=b);c<b;c++)if(c in this&&this[c]===a)return c;return-1});var a={};return a.prefix="",a._getPrefixedKey=function(a,b){return b=b||{},b.noPrefix?a:this.prefix+a},a.set=function(a,b,c){var d=this._getPrefixedKey(a,c);try{localStorage.setItem(d,JSON.stringify({data:b}))}catch(c){console&&console.warn("Lockr didn't successfully save the '{"+a+": "+b+"}' pair, because the localStorage is full.")}},a.get=function(a,b,c){var e,d=this._getPrefixedKey(a,c);try{e=JSON.parse(localStorage.getItem(d))}catch(a){e=localStorage[d]?{data:localStorage.getItem(d)}:null}return null===e?b:"object"==typeof e&&"undefined"!=typeof e.data?e.data:b},a.sadd=function(b,c,d){var f,e=this._getPrefixedKey(b,d),g=a.smembers(b);if(g.indexOf(c)>-1)return null;try{g.push(c),f=JSON.stringify({data:g}),localStorage.setItem(e,f)}catch(a){console.log(a),console&&console.warn("Lockr didn't successfully add the "+c+" to "+b+" set, because the localStorage is full.")}},a.smembers=function(a,b){var d,c=this._getPrefixedKey(a,b);try{d=JSON.parse(localStorage.getItem(c))}catch(a){d=null}return null===d?[]:d.data||[]},a.sismember=function(b,c,d){return a.smembers(b).indexOf(c)>-1},a.keys=function(){var b=[],c=Object.keys(localStorage);return 0===a.prefix.length?c:(c.forEach(function(c){c.indexOf(a.prefix)!==-1&&b.push(c.replace(a.prefix,""))}),b)},a.getAll=function(){var b=a.keys();return b.map(function(b){return a.get(b)})},a.srem=function(b,c,d){var f,g,e=this._getPrefixedKey(b,d),h=a.smembers(b,c);g=h.indexOf(c),g>-1&&h.splice(g,1),f=JSON.stringify({data:h});try{localStorage.setItem(e,f)}catch(a){console&&console.warn("Lockr couldn't remove the "+c+" from the set "+b)}},a.rm=function(a){localStorage.removeItem(a)},a.flush=function(){a.prefix.length?a.keys().forEach(function(b){localStorage.removeItem(a._getPrefixedKey(b))}):localStorage.clear()},a}();
+        var Lockr = function(){
+            if (!Array.prototype.indexOf) {
+                Array.prototype.indexOf = function(elt)
+                {
+                    var len = this.length >>> 0;
+
+                    var from = Number(arguments[1]) || 0;
+                    from = (from < 0)
+                        ? Math.ceil(from)
+                        : Math.floor(from);
+                    if (from < 0)
+                        from += len;
+
+                    for (; from < len; from++)
+                    {
+                        if (from in this &&
+                            this[from] === elt)
+                            return from;
+                    }
+                    return -1;
+                };
+            }
+
+            var Lockr = {};
+
+            Lockr.prefix = "";
+
+            Lockr._getPrefixedKey = function(key, options) {
+                options = options || {};
+
+                if (options.noPrefix) {
+                    return key;
+                } else {
+                    return this.prefix + key;
+                }
+
+            };
+
+            Lockr.set = function (key, value, options) {
+                var query_key = this._getPrefixedKey(key, options);
+
+                try {
+                    localStorage.setItem(query_key, JSON.stringify({"data": value}));
+                } catch (e) {
+                    if (console) console.warn("Lockr didn't successfully save the '{"+ key +": "+ value +"}' pair, because the localStorage is full.");
+                }
+            };
+
+            Lockr.get = function (key, missing, options) {
+                var query_key = this._getPrefixedKey(key, options),
+                    value;
+
+                try {
+                    value = JSON.parse(localStorage.getItem(query_key));
+                } catch (e) {
+                    if(localStorage[query_key]) {
+                        value = {data: localStorage.getItem(query_key)};
+                    } else{
+                        value = null;
+                    }
+                }
+                if(value === null) {
+                    return missing;
+                } else if (typeof value === 'object' && typeof value.data !== 'undefined') {
+                    return value.data;
+                } else {
+                    return missing;
+                }
+            };
+
+            Lockr.sadd = function(key, value, options) {
+                var query_key = this._getPrefixedKey(key, options),
+                    json;
+
+                var values = Lockr.smembers(key);
+
+                if (values.indexOf(value) > -1) {
+                    return null;
+                }
+
+                try {
+                    values.push(value);
+                    json = JSON.stringify({"data": values});
+                    localStorage.setItem(query_key, json);
+                } catch (e) {
+                    console.log(e);
+                    if (console) console.warn("Lockr didn't successfully add the "+ value +" to "+ key +" set, because the localStorage is full.");
+                }
+            };
+
+            Lockr.smembers = function(key, options) {
+                var query_key = this._getPrefixedKey(key, options),
+                    value;
+
+                try {
+                    value = JSON.parse(localStorage.getItem(query_key));
+                } catch (e) {
+                    value = null;
+                }
+
+                if (value === null)
+                    return [];
+                else
+                    return (value.data || []);
+            };
+
+            Lockr.sismember = function(key, value, options) {
+                return Lockr.smembers(key).indexOf(value) > -1;
+            };
+
+            Lockr.keys = function() {
+                var keys = [];
+                var allKeys = Object.keys(localStorage);
+
+                if (Lockr.prefix.length === 0) {
+                    return allKeys;
+                }
+
+                allKeys.forEach(function (key) {
+                    if (key.indexOf(Lockr.prefix) !== -1) {
+                        keys.push(key.replace(Lockr.prefix, ''));
+                    }
+                });
+
+                return keys;
+            };
+
+            Lockr.getAll = function () {
+                var keys = Lockr.keys();
+                return keys.map(function (key) {
+                    return Lockr.get(key);
+                });
+            };
+
+            Lockr.srem = function(key, value, options) {
+                var query_key = this._getPrefixedKey(key, options),
+                    json,
+                    index;
+
+                var values = Lockr.smembers(key, value);
+
+                index = values.indexOf(value);
+
+                if (index > -1)
+                    values.splice(index, 1);
+
+                json = JSON.stringify({"data": values});
+
+                try {
+                    localStorage.setItem(query_key, json);
+                } catch (e) {
+                    if (console) console.warn("Lockr couldn't remove the "+ value +" from the set "+ key);
+                }
+            };
+
+            Lockr.rm =  function (key) {
+                localStorage.removeItem(key);
+            };
+
+            Lockr.flush = function () {
+                if (Lockr.prefix.length) {
+                    Lockr.keys().forEach(function(key) {
+                        localStorage.removeItem(Lockr._getPrefixedKey(key));
+                    });
+                } else {
+                    localStorage.clear();
+                }
+            };
+            return Lockr;
+
+        }();
 
         return {
             add: function(labelText) {
