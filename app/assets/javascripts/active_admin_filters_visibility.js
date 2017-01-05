@@ -13,6 +13,16 @@
             return panel;
         }
 
+
+        function diffArray(arr1, arr2) {
+            return arr1.concat(arr2).filter(function (val) {
+                if (!(arr1.includes(val) && arr2.includes(val)))
+                    return val;
+            });
+        }
+
+
+
         function findFilterWrapperByLabelText(labelText) {
             return panel.find(".filter_form_field label").filter(function() {
                 var nodeText = $(this)[0].childNodes[0].textContent;
@@ -24,12 +34,26 @@
             var html = '';
 
             var labels = panel.find('.filter_form_field label:first-child').map(function() {
-                return $(this).text().trim();
+                var text = $(this)[0].childNodes[0].textContent.trim()
+                $(this).closest('.filter_form_field').attr('data-pseudo-id', encodeURIComponent(text));
+                return text;
             }).get();
+
+            var orderedLabels = storage.getOrder();
+
+            //diffArray
+            if (orderedLabels.length > 0) {
+                if (diffArray(labels, orderedLabels).length) {
+                    storage.resetOrder();
+                    console.log('Reset');
+                } else {
+                    labels = orderedLabels;
+                }
+            }
 
             $.each(labels, function(i, text) {
                 var checked = storage.has(text) ? '' : 'checked="checked"';
-                html += '<div><label><input type="checkbox" value="'+text+'" ' + checked +'> ' + text + '</label></div>';
+                html += '<div><label data-pseudo-id="'+encodeURIComponent(text)+'"><input type="checkbox" value="'+text+'" ' + checked +'> ' + text + '</label></div>';
             });
 
             return html;
@@ -104,8 +128,98 @@
 
         render();
 
+        if (settings.ordering) {
+            $.fn.activeAdminFiltersVisibility.applyOrder(panel, storage);
+            var resetOrderButtonHtml = '<a href="#" class="filters-visibility-reset-order-btn">' + settings.resetOrderButtonTitle + '</a>';
+            panel.find('.filters-visibility-panel div:first')
+                .append(resetOrderButtonHtml)
+                .after('<div><i>' + settings.orderHint + '</i></div>');
+
+            panel.on('click', '.filters-visibility-reset-order-btn', function(e) {
+                e.preventDefault();
+                storage.resetOrder();
+                window.location.reload();
+            });
+        }
+
         return panel;
     };
+
+    // Ordering
+    $.fn.activeAdminFiltersVisibility.applyOrder = function(panel, storage) {
+
+        // re-render sidebar filters(even if they are not visible, show/hide event is independent and knows nothing about order)
+        function renderReorderedFilters() {
+            var wrapper = panel.find('form');
+            var order = storage.getOrder();
+
+            var existingOrder = panel.find('.filter_form_field label:first-child').map(function() {
+                return $(this)[0].childNodes[0].textContent.trim();
+            }).get();
+
+            if (order.length > 0 && JSON.stringify(order) != JSON.stringify(existingOrder)) {
+                var pos = 0;
+                $.each(order, function(i, text) {
+                    var textEncoded = encodeURIComponent(text);
+                    var el = wrapper.find('div[data-pseudo-id="' + textEncoded + '"]');
+                    if (el.length > 0) {
+                        var elOnThisPosition = wrapper.find('.filter_form_field').eq(pos);
+                        if (elOnThisPosition.data('pseudo-id') != textEncoded) {
+                            wrapper[0].insertBefore(el[0], elOnThisPosition[0]);
+                        }
+                        pos++;
+                    }
+                });
+            }
+        }
+
+
+        var isOrdered = storage.getOrder().length > 0;
+
+        // define draggable elements
+
+        panel.find('.filters-visibility-panel label').attr('draggable', 'true');
+
+        // Attach events
+        panel.on('drop', '.filters-visibility-panel label', function(e) {
+            e.preventDefault();
+            var drag_el_id = e.originalEvent.dataTransfer.getData("text"),
+                drag_el = panel.find('label[data-pseudo-id="' + drag_el_id + '"]'),
+                drop_el = $(this),
+                wrapper = panel.find('.filters-visibility-panel');
+
+            if (drag_el != drop_el) {
+                wrapper[0].insertBefore(drag_el.parent()[0], drop_el.parent()[0]);
+
+                var orderedList = wrapper.find('label').map(function() {
+                    return $(this).text().trim();
+                }).get();
+
+                storage.setOrder(orderedList);
+
+                renderReorderedFilters();
+            }
+        });
+
+        panel.on('dragover', '.filters-visibility-panel', function(e) {
+            e.preventDefault();
+        });
+
+        panel.find('.filters-visibility-panel label').on('dragstart', function(e) {
+            var key = $(this).data('pseudo-id');
+            e.originalEvent.dataTransfer.setData("text", key);
+        });
+
+
+        // Apply Order
+        if (isOrdered) {
+            // Apply reorder !!!
+            renderReorderedFilters();
+        }
+
+        return panel;
+    };
+
 
 
     // Plugin Storage method
@@ -283,15 +397,26 @@
 
         }();
 
+        var storageIdForOrder = '__ordered__' + storageUniqId;
+
         return {
-            add: function(labelText) {
-                Lockr.sadd(storageUniqId, labelText);
+            setOrder: function(orderedList) {
+                Lockr.set(storageIdForOrder, orderedList);
             },
-            remove: function(labelText) {
-                Lockr.srem(storageUniqId, labelText);
+            getOrder: function() {
+                return Lockr.get(storageIdForOrder) || [];
             },
-            has: function(labelText) {
-                return Lockr.sismember(storageUniqId, labelText);
+            resetOrder: function() {
+                Lockr.rm(storageIdForOrder);
+            },
+            add: function(key) {
+                Lockr.sadd(storageUniqId, key);
+            },
+            remove: function(key) {
+                Lockr.srem(storageUniqId, key);
+            },
+            has: function(key) {
+                return Lockr.sismember(storageUniqId, key);
             },
             all: function() {
                 return Lockr.smembers(storageUniqId);
@@ -311,6 +436,8 @@
         lines.push('.filters-visibility-button.active { color: #007ab8; }');
         lines.push('.filters-visibility-panel { display: none; border-left: 10px solid rgba(0, 0, 0, 0.1); background-color: rgba(0, 0, 0, 0.02); margin-bottom: 10px; }');
         lines.push('.filters-visibility-panel > div { margin-left: 5px; }');
+        lines.push('.filters-visibility-panel > div:first-child { display: flex; }');
+        lines.push('.filters-visibility-panel .filters-visibility-reset-order-btn { display: inline-block; margin-left: auto; }');
 
         var sheet = document.createElement('style');
         sheet.type = 'text/css';
@@ -328,7 +455,10 @@
         iconClass: '',
         iconStyle: '',
         skipDefaultCss: false,
-        title: 'Visibility:'
+        ordering: false,
+        title: 'Visibility:',
+        orderHint: 'Drag&Drop to reorder filters',
+        resetOrderButtonTitle: 'Reset order'
     };
 
 })(jQuery);

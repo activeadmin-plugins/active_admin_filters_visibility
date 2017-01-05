@@ -4,7 +4,11 @@ ActiveAdmin plugin allows to hide any filter from Filters Sidebar.
 Useful when page has many filters, but admin user needs only some of them.
 Every filter saves its state using browser's LocalStorage. 
 
-![Demonstration](https://raw.githubusercontent.com/activeadmin-plugins/active_admin_filters_visibility/master/screen/example_aa_filters_visibility.gif "Example")
+![Demonstration](https://raw.githubusercontent.com/activeadmin-plugins/active_admin_filters_visibility/master/screen/example_aa_filters_visibility.gif "Visibility example")
+
+Also you can use drag&drop to change filters order
+
+![Demonstration](https://raw.githubusercontent.com/activeadmin-plugins/active_admin_filters_visibility/master/screen/example_aa_filters_ordering.gif "Ordering example")
 
 ## Install
 
@@ -16,7 +20,7 @@ In Gemfile add
 
 in the 
 ``` 
-  app/assets/javascript/active_admin.coffe 
+  app/assets/javascript/active_admin.coffee
 ```
 
 and 
@@ -51,18 +55,29 @@ Default is:
     iconClass: '',
     iconStyle: '',
     skipDefaultCss: false,
-    title: 'Visibility:'
+    title: 'Visibility:',
+    ordering: false,
+    orderHint: 'Drag&Drop to reorder filters',
+    resetOrderButtonTitle: 'Reset order'
 }
 ```
 
 You can change icon - this is a HTML text or symbol. You can pass empty string and customize it with your CSS.
-Ou you can set class("iconClass") for icon or inline styles("iconStyle").
+Or you can set class("iconClass") for icon or inline styles("iconStyle").
 
 This plugin has minimal CSS styling. 
 In case you want to use custom CSS, default styling can be ignored: 
 set ```skipDefaultCss``` to ```true```
 
-Plugin has only one text message - "title". It can be changed, example: ```title: "Unchecked filters will be hidden"```
+
+### Ordering
+
+By default ordering is disabled. You can turn it: set option ```ordering``` to ```true```.
+
+
+### Texts
+Change text in options: ```title```, ```orderHint``` and ```resetOrderButtonTitle```
+
 
 ### Saving state
 
