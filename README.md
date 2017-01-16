@@ -82,37 +82,36 @@ Change text in options: ```title```, ```orderHint``` and ```resetOrderButtonTitl
 ### Saving state
 
 Plugin saves list of hidden filters in LocalStorage, using jQuery plugin "Lockr" https://github.com/tsironis/lockr
-It can be changed by overriding this object:
+If you need to save this in cookies or user profile, you should write your own implementation - rewrite "$.fn.activeAdminFiltersVisibility.storage".
+For example:
 
 ```javascript
 $.fn.activeAdminFiltersVisibility.storage = function(storageUniqId) {
     // initialize storage with "storageUniqId"
     // every page(sidebar filters) must has its uniq storageUniqId
-    var myStorage = MyCustomizedStorage(storageUniqId);
+    var myStorage = new MyCustomizedStorage(storageUniqId);
+
     return {
         add: function(labelText) {
             // add hidden filter "labelText" to storage myStorage
-            this.myStorage.add(labelText);
+            myStorage.add(labelText);
         },
         remove: function(labelText) {
             // drop hidden filter "labelText" to storage myStorage
             // makes filter visible again
-            this.myStorage.remove(labelText);
+            myStorage.remove(labelText);
         },
         has: function(labelText) {
             // check if labelText already hidden(in storage)
             // should return true if exists
-            var exists = this.myStorage.find(labelText) ? true : false;
-            return exists; // true or false
+            return myStorage.find(labelText) ? true : false;
         },
         all: function() {
-            // return array of strings(labels)
-            // this is hidden filters
-            return this.myStorage.getAll(); // ['Id', 'Name', 'Created At']
+            // return array of hidden labels(filters)
+            return myStorage.getAll(); // ['Id', 'Name', 'Created At']
         },
         any: function() {
             // check if current Sidebar Filter has some hidden elements
-            // needs for showing indicator
             return this.all().length > 0;
         }
     }
