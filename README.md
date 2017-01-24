@@ -58,7 +58,7 @@ Default is:
     title: 'Visibility:',
     ordering: false,
     orderHint: 'Drag&Drop to reorder filters',
-    resetOrderButtonTitle: 'Reset order'
+    resetButtonTitle: 'Reset'
 }
 ```
 
@@ -76,7 +76,33 @@ By default ordering is disabled. You can turn it: set option ```ordering``` to `
 
 
 ### Texts
-Change text in options: ```title```, ```orderHint``` and ```resetOrderButtonTitle```
+Change text in options: ```title```, ```orderHint``` and ```resetButtonTitle```
+
+
+### Dont hide filters which has selected value
+
+If filter has selected value - that filter will not be hidden on page reload. Even if "visibility checkbox" is unchecked.
+This was made for preventing unpredictable filtering: for example when user came to page by some link with predefined filterin params.
+All default filters types(string, numeric, date range, etc.) are implemented.
+But if you have some specific filter, you need to add custom handler.
+
+For example you have customized filter by ID.
+And you want to consider "1" as default value and hide it.
+In this case you should add uniq class to wrapper.
+
+```ruby
+filter :id, wrapper_html: { class: 'filter_customized_id' }
+```
+
+```javascript
+    // return TRUE if this filter has value
+    // elWrapper is jQuery element "div.filter_form_field.filter_customized_id"
+    // if not "1" then consider this filter as active, and return TRUE to prevent hiding
+    $.fn.activeAdminFiltersVisibility.registerFilterType('customized_id', function(elWrapper) {
+        var inputValue = elWrapper.find('input').val();
+        return inputValue != '1';
+    });
+```
 
 
 ### Saving state
