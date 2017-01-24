@@ -44,8 +44,7 @@
             //diffArray
             if (orderedLabels.length > 0) {
                 if (diffArray(labels, orderedLabels).length) {
-                    storage.resetOrder();
-                    console.log('Reset');
+                    storage.reset();
                 } else {
                     labels = orderedLabels;
                 }
@@ -83,7 +82,10 @@
 
             // Hide filters
             $.each(storage.all(), function(i, labelText) {
-                findFilterWrapperByLabelText(labelText).hide();
+                var elWrapper = findFilterWrapperByLabelText(labelText);
+                if ( false == isFilterFilled(elWrapper) ) {
+                    elWrapper.hide();
+                }
             });
 
             // Mark button if some filters are hidden
@@ -102,6 +104,32 @@
             findFilterWrapperByLabelText(labelText).show();
             storage.remove(labelText);
             renderNotice();
+        }
+
+        // prevent hiding filter if it is no empty (triggers only on page render)
+        function isFilterFilled(elWrapper) {
+            if (elWrapper.length == 0) {
+                return false;
+            }
+            var klasses = elWrapper.attr('class').split(' ');
+
+            var filterTypeName = $.grep(klasses, function(v) {
+                return v != 'filter_form_field' && /^filter_/.test(v)
+            })[0].replace(/^filter_/, "");
+
+            function _detectIsFilled(filterTypeName, elWrapper) {
+                var functionOrString = $.fn.activeAdminFiltersVisibility.filtersTypesDefinitions[filterTypeName];
+
+                if (typeof functionOrString == 'string' && functionOrString != filterTypeName) {
+                    return $.fn.activeAdminFiltersVisibility.filtersTypesDefinitions[functionOrString].call(this, elWrapper);
+                } else if (typeof functionOrString == 'function') {
+                    return functionOrString.call(this, elWrapper);
+                } else {
+                    return $.fn.activeAdminFiltersVisibility.filtersTypesDefinitions['default'].call(this, elWrapper);
+                }
+            }
+
+            return _detectIsFilled(filterTypeName, elWrapper);
         }
 
 
@@ -130,14 +158,14 @@
 
         if (settings.ordering) {
             $.fn.activeAdminFiltersVisibility.applyOrder(panel, storage);
-            var resetOrderButtonHtml = '<a href="#" class="filters-visibility-reset-order-btn">' + settings.resetOrderButtonTitle + '</a>';
+            var resetButtonHtml = '<a href="#" class="filters-visibility-reset-btn">' + settings.resetButtonTitle + '</a>';
             panel.find('.filters-visibility-panel div:first')
-                .append(resetOrderButtonHtml)
+                .append(resetButtonHtml)
                 .after('<div><i>' + settings.orderHint + '</i></div>');
 
-            panel.on('click', '.filters-visibility-reset-order-btn', function(e) {
+            panel.on('click', '.filters-visibility-reset-btn', function(e) {
                 e.preventDefault();
-                storage.resetOrder();
+                storage.reset();
                 window.location.reload();
             });
         }
@@ -406,8 +434,9 @@
             getOrder: function() {
                 return Lockr.get(storageIdForOrder) || [];
             },
-            resetOrder: function() {
+            reset: function() {
                 Lockr.rm(storageIdForOrder);
+                Lockr.rm(storageUniqId);
             },
             add: function(key) {
                 Lockr.sadd(storageUniqId, key);
@@ -437,13 +466,37 @@
         lines.push('.filters-visibility-panel { display: none; border-left: 10px solid rgba(0, 0, 0, 0.1); background-color: rgba(0, 0, 0, 0.02); margin-bottom: 10px; }');
         lines.push('.filters-visibility-panel > div { margin-left: 5px; }');
         lines.push('.filters-visibility-panel > div:first-child { display: flex; }');
-        lines.push('.filters-visibility-panel .filters-visibility-reset-order-btn { display: inline-block; margin-left: auto; }');
+        lines.push('.filters-visibility-panel .filters-visibility-reset-btn { display: inline-block; margin-left: auto; }');
 
         var sheet = document.createElement('style');
         sheet.type = 'text/css';
         sheet.innerHTML = lines.join(' ');
         document.body.appendChild(sheet);
     };
+
+
+    // Prevent filter from being hidden this filter is was used for filtering data
+    $.fn.activeAdminFiltersVisibility.filtersTypesDefinitions = {
+        'default': function (elWrapper) {
+            var notEmptyInput = elWrapper.find('input[id!=""][type!="hidden"][value][value!=""]');
+            return notEmptyInput.length > 0;
+        }
+    };
+
+    $.fn.activeAdminFiltersVisibility.registerFilterType = function(name, filterTypeDefinitionFunc) {
+        $.fn.activeAdminFiltersVisibility.filtersTypesDefinitions[name] = filterTypeDefinitionFunc;
+    };
+
+    $.fn.activeAdminFiltersVisibility.registerFilterType('check_boxes', function(elWrapper) {
+        return elWrapper.find('input[id!=""][type!="hidden"][value][value!=""]:checked').length > 0;
+    });
+
+    $.fn.activeAdminFiltersVisibility.registerFilterType('select', function(elWrapper) {
+        return elWrapper.find('select[id]:first').val().length > 0;
+    });
+
+    $.fn.activeAdminFiltersVisibility.registerFilterType('boolean', 'select');
+
 
 
     // Plugin defaults
@@ -458,7 +511,7 @@
         ordering: false,
         title: 'Visibility:',
         orderHint: 'Drag&Drop to reorder filters',
-        resetOrderButtonTitle: 'Reset order'
+        resetButtonTitle: 'Reset'
     };
 
 })(jQuery);
