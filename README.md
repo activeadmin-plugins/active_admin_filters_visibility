@@ -82,12 +82,12 @@ Change text in options: ```title```, ```orderHint``` and ```resetButtonTitle```
 ### Dont hide filters which has selected value
 
 If filter has selected value - that filter will not be hidden on page reload. Even if "visibility checkbox" is unchecked.
-This was made for preventing unpredictable filtering: for example when user came to page by some link with predefined filterin params.
+This was made for preventing unpredictable filtering: for example when user came to page by some link with predefined filtering params.
 All default filters types(string, numeric, date range, etc.) are implemented.
 But if you have some specific filter, you need to add custom handler.
 
 For example you have customized filter by ID.
-And you want to consider "1" as default value and hide it.
+And you want to consider "1" as default value and allow hiding it.
 In this case you should add uniq class to wrapper.
 
 ```ruby
