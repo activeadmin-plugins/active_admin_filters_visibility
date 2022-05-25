@@ -1,8 +1,12 @@
+[![Gem Version](https://badge.fury.io/rb/active_admin_filters_visibility.svg)](https://badge.fury.io/rb/active_admin_filters_visibility)
+[![NPM Version](https://badge.fury.io/js/@activeadmin-plugins%2Factive_admin_filters_visibility.svg)](https://badge.fury.io/js/@activeadmin-plugins%2Factive_admin_filters_visibility)
+![npm](https://img.shields.io/npm/dm/@activeadmin-plugins/active_admin_filters_visibility)
+
 # ActiveAdminFiltersVisibility
 
 ActiveAdmin plugin allows to hide any filter from Filters Sidebar.
 Useful when page has many filters, but admin user needs only some of them.
-Every filter saves its state using browser's LocalStorage. 
+Every filter saves its state using browser's LocalStorage.
 
 ![Demonstration](https://raw.githubusercontent.com/activeadmin-plugins/active_admin_filters_visibility/master/screen/example_aa_filters_visibility.gif "Visibility example")
 
@@ -15,23 +19,51 @@ Also you can use drag&drop to change filters order
 In Gemfile add
 
 ```ruby
-  gem 'active_admin_filters_visibility', git: 'https://github.com/activeadmin-plugins/active_admin_filters_visibility' 
+  gem 'active_admin_filters_visibility', git: 'https://github.com/activeadmin-plugins/active_admin_filters_visibility'
 ```
 
-in the 
-``` 
+##### Using assets via Sprockets
+in the
+```
   app/assets/javascript/active_admin.coffee
 ```
 
-and 
+and
 
 ```coffeescript
   #= require active_admin_filters_visibility
 ```
 
-and initialize it with:
+##### Using assets via Webpacker (or any other assets bundler) as a NPM module (Yarn package)
 
-```javascript 
+Execute:
+
+    $ npm i @activeadmin-plugins/active_admin_filters_visibility
+
+Or
+
+    $ yarn add @activeadmin-plugins/active_admin_filters_visibility
+
+Or add manually to `package.json`:
+
+```json
+"dependencies": {
+  "@activeadmin-plugins/active_admin_filters_visibility": "1.2.0"
+}
+```
+and execute:
+
+    $ yarn
+
+Add the following line into `app/assets/javascripts/active_admin.js`:
+
+```javascript
+import '@activeadmin-plugins/active_admin_filters_visibility';
+```
+
+##### Initialization:
+
+```javascript
   $(document).ready(function() {
     $('#filters_sidebar_section').activeAdminFiltersVisibility();
   });
@@ -43,7 +75,7 @@ and initialize it with:
   $('.jquery-selector').activeAdminFiltersVisibility(options)
 ```
 
-ActiveAdminFiltersVisibility is a standard jQuery Plugin, and accepts some "options" as a hash. 
+ActiveAdminFiltersVisibility is a standard jQuery Plugin, and accepts some "options" as a hash.
 Default is:
 
 ```javascript
@@ -65,8 +97,8 @@ Default is:
 You can change icon - this is a HTML text or symbol. You can pass empty string and customize it with your CSS.
 Or you can set class("iconClass") for icon or inline styles("iconStyle").
 
-This plugin has minimal CSS styling. 
-In case you want to use custom CSS, default styling can be ignored: 
+This plugin has minimal CSS styling.
+In case you want to use custom CSS, default styling can be ignored:
 set ```skipDefaultCss``` to ```true```
 
 
