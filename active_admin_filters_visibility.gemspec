@@ -13,12 +13,11 @@ Gem::Specification.new do |s|
 
   s.add_dependency 'activeadmin'
 
-  # Dev-only paths stay out of the package. `screen/` is two README
-  # demo gifs totalling 1.38 MB — 98.5% of the published gem, for
-  # images nobody sees outside GitHub. `s.test_files` is dropped:
-  # RubyGems deprecated it, and it pointed at files this gem no longer
-  # ships.
-  s.files         = `git ls-files -z`.split("\x0").reject { |f| f.match(%r{^(test|spec|features|screen|\.github)/}) }
+  # Whitelist, not a reject list: a new directory in the repo does not
+  # reach consumers until it is named here. The reject form needs a new
+  # pattern every time the repo grows one, and that is how 1.3 MB of
+  # README gifs under screen/ ended up published in the first place.
+  s.files         = Dir['lib/**/*', 'app/**/*', 'README.md', 'LICENSE']
   s.executables   = `git ls-files -- bin/*`.split("\n").map{ |f| File.basename(f) }
   s.require_paths = ['lib']
 end
