@@ -13,8 +13,12 @@ Gem::Specification.new do |s|
 
   s.add_dependency 'activeadmin'
 
-  s.files         = `git ls-files`.split("\n")
-  s.test_files    = `git ls-files -- {test,spec,features}/*`.split("\n")
+  # Dev-only paths stay out of the package. `screen/` is two README
+  # demo gifs totalling 1.38 MB — 98.5% of the published gem, for
+  # images nobody sees outside GitHub. `s.test_files` is dropped:
+  # RubyGems deprecated it, and it pointed at files this gem no longer
+  # ships.
+  s.files         = `git ls-files -z`.split("\x0").reject { |f| f.match(%r{^(test|spec|features|screen|\.github)/}) }
   s.executables   = `git ls-files -- bin/*`.split("\n").map{ |f| File.basename(f) }
   s.require_paths = ['lib']
 end
