@@ -17,7 +17,7 @@ Gem::Specification.new do |s|
   # reach consumers until it is named here. The reject form needs a new
   # pattern every time the repo grows one, and that is how 1.3 MB of
   # README gifs under screen/ ended up published in the first place.
-  s.files         = `git ls-files -z -- lib app vendor config exe bin README.md LICENSE`.split("\x0")
+  s.files         = `git ls-files -z -- lib app vendor config db exe bin README.md LICENSE`.split("\x0")
   s.executables   = `git ls-files -- bin/*`.split("\n").map{ |f| File.basename(f) }
   s.require_paths = ['lib']
 end
