@@ -1,0 +1,7 @@
+/.bundle/
+/bin/
+/Gemfile.lock
+/pkg/
+/tmp/
+spec/rails/rails-*
+/coverage
