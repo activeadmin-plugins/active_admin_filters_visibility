@@ -15,8 +15,11 @@ Gem::Specification.new do |s|
 
   s.add_dependency 'activeadmin', '>= 3.2', '< 4.0'
 
-  s.files         = `git ls-files`.split("\n")
-  s.test_files    = `git ls-files -- {test,spec,features}/*`.split("\n")
+  # Whitelist, not a reject list: a new directory in the repo does not
+  # reach consumers until it is named here. The reject form needs a new
+  # pattern every time the repo grows one, and that is how 1.3 MB of
+  # README gifs under screen/ ended up published in the first place.
+  s.files         = `git ls-files -z -- lib app vendor config db exe bin README.md LICENSE`.split("\x0")
   s.executables   = `git ls-files -- bin/*`.split("\n").map{ |f| File.basename(f) }
   s.require_paths = ['lib']
 end
