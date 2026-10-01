@@ -11,7 +11,9 @@ Gem::Specification.new do |s|
   s.summary     = %q{active_admin_filters_visibility gem}
   s.description = %q{extension for activeadmin gem to hide any filters from sidebar-filters panel}
 
-  s.add_dependency 'activeadmin'
+  s.required_ruby_version = '>= 3.3'
+
+  s.add_dependency 'activeadmin', '>= 3.2', '< 4.0'
 
   s.files         = `git ls-files`.split("\n")
   s.test_files    = `git ls-files -- {test,spec,features}/*`.split("\n")
