@@ -9,11 +9,11 @@ Gem::Specification.new do |s|
   s.email       = ['workgena@gmail.com']
   s.homepage    = 'https://github.com/workgena/active_admin_filters_visibility'
   s.summary     = %q{active_admin_filters_visibility gem}
-  s.description = %q{extension for activeadmin gem to hide any filters from sidebar-filters panel}
+  s.description = %q{extension for activeadmin gem to hide and reorder filters in the ActiveAdmin 4 filters sidebar}
 
   s.required_ruby_version = '>= 3.3'
 
-  s.add_dependency 'activeadmin', '>= 3.2', '< 4.0.0.a'
+  s.add_dependency 'activeadmin', '>= 4.0.0.beta1', '< 5'
 
   # Whitelist, not a reject list: a new directory in the repo does not
   # reach consumers until it is named here. The reject form needs a new
