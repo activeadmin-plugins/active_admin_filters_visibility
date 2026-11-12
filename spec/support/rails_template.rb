@@ -21,10 +21,14 @@ generate :model, 'post title:string:uniq body:text author:references --force'
 inject_into_file "app/models/author.rb", "  validates_presence_of :name\n  validates_uniqueness_of :last_name\n", after: "ApplicationRecord\n"
 inject_into_file "app/models/post.rb", "   validates_presence_of :author\n", after: ":author\n"
 
-# Add ransackable_attributes for Ransack 4+
+# Add ransackable_attributes/associations for Ransack 4+ (Ransack 6 raises
+# when a model leaves ransackable_associations undefined)
 inject_into_file "app/models/author.rb",
   "  def self.ransackable_attributes(auth_object = nil)\n" \
   "    [\"name\", \"last_name\", \"birthday\", \"created_at\"]\n" \
+  "  end\n" \
+  "  def self.ransackable_associations(auth_object = nil)\n" \
+  "    []\n" \
   "  end\n",
   after: "ApplicationRecord\n"
 
