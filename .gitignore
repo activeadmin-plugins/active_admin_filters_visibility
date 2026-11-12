@@ -1,7 +1,13 @@
 /.bundle/
 /bin/
 /Gemfile.lock
+/gemfiles/*.lock
 /pkg/
 /tmp/
-spec/rails/rails-*
 /coverage
+/src/
+/node_modules/
+/spec/dummy/tmp/
+/spec/dummy/log/
+/spec/dummy/app/assets/builds/*
+!/spec/dummy/app/assets/builds/.keep
