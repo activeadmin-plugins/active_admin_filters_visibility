@@ -108,7 +108,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
 A hidden filter that has a value when the page loads stays visible, for example when an admin follows a link with filter params. Otherwise the list would be filtered by something the admin cannot see.
 
-The plugin detects a value by the filter's type, which is a class on the filter wrapper (`select`, `string`, `date_range`, ...). Select and boolean filters count a selected option with a value. Every other type counts a filled text field or a checked box. To change that for one filter, give its wrapper a class and register a detector for it:
+The plugin detects a value by the filter's type, which is a class on the filter wrapper (`select`, `string`, `date_range`, ...). Select and boolean filters count a selected option with a value. Every other type counts a filled text field or a checked box. To change that for one filter, give its wrapper a class and register a detector for it. A detector you register wins over the built-in ones, whatever the class order:
 
 ```ruby
 filter :id, wrapper_html: { class: 'customized-id' }

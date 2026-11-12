@@ -120,9 +120,9 @@ describe 'filters visibility', type: :feature do
     checkbox('q_active_input').uncheck
 
     # "No" is a selected option with a value, but the yes-only detector
-    # counts it as empty.
+    # counts it as empty, although the wrapper lists "select" first.
     visit '/admin/authors?q[active_eq]=false'
-    expect(find('#q_active_input', visible: :all)[:class]).to include('select')
+    expect(find('#q_active_input', visible: :all)[:class]).to start_with('select yes-only')
     expect(page).to have_css('#q_active_input', visible: :hidden)
   end
 

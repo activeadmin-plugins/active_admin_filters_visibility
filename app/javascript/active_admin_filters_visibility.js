@@ -68,12 +68,17 @@ export const filterTypes = {
   boolean: hasSelectedValue
 }
 
+const builtInTypes = new Set(Object.keys(filterTypes))
+
 export function registerFilterType(name, detector) {
   filterTypes[name] = detector
 }
 
+// A detector registered for a class beats Formtastic's type class, whatever
+// the class order on the wrapper.
 function isFilled(wrapper) {
-  const name = Array.from(wrapper.classList).find((klass) => klass !== "default" && Object.hasOwn(filterTypes, klass))
+  const names = Array.from(wrapper.classList).filter((klass) => klass !== "default" && Object.hasOwn(filterTypes, klass))
+  const name = names.find((klass) => !builtInTypes.has(klass)) || names[0]
   return Boolean((filterTypes[name] || filterTypes.default)(wrapper))
 }
 
