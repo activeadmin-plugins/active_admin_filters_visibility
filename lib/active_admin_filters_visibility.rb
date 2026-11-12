@@ -16,10 +16,11 @@ module ActiveAdminFiltersVisibility
         app.config.assets.paths << root.join('app/javascript') if app.config.respond_to?(:assets)
       end
 
-      # javascript_modules comes from activeadmin/activeadmin#9148. Without it
-      # the host imports the module itself (see README).
-      config.after_initialize do
-        if ActiveAdmin.application.respond_to?(:javascript_modules)
+      # javascript_modules comes from activeadmin/activeadmin#9148. Without it,
+      # or without importmap-rails (nothing pinned), the host imports the
+      # module itself (see README).
+      config.after_initialize do |app|
+        if app.config.respond_to?(:importmap) && ActiveAdmin.application.respond_to?(:javascript_modules)
           ActiveAdmin.application.javascript_modules |= [JAVASCRIPT_MODULE]
         end
       end

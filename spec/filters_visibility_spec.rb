@@ -29,14 +29,14 @@ describe 'filters visibility', type: :feature do
   end
 
   # Chrome DevTools has no HTML5 drag and drop, so dispatch the events.
-  def drag(source_id, onto:)
+  def drag(source_id, onto:, below: false)
     page.execute_script(<<~JS)
       const list = document.querySelector('[data-filters-visibility-panel] ul')
       const source = list.querySelector('[data-filters-visibility-item="#{source_id}"]')
       const target = list.querySelector('[data-filters-visibility-item="#{onto}"]')
       const rect = target.getBoundingClientRect()
       const dataTransfer = new DataTransfer()
-      const fire = (el, type) => el.dispatchEvent(new DragEvent(type, { bubbles: true, cancelable: true, dataTransfer, clientY: rect.top + 1 }))
+      const fire = (el, type) => el.dispatchEvent(new DragEvent(type, { bubbles: true, cancelable: true, dataTransfer, clientY: #{below ? 'rect.bottom - 1' : 'rect.top + 1'} }))
       fire(source, 'dragstart')
       fire(target, 'dragover')
       fire(target, 'drop')
@@ -115,6 +115,17 @@ describe 'filters visibility', type: :feature do
     expect(page).to have_css('#q_active_input', visible: :hidden)
   end
 
+  it 'prefers a registered detector over the built-in one' do
+    open_panel
+    checkbox('q_active_input').uncheck
+
+    # "No" is a selected option with a value, but the yes-only detector
+    # counts it as empty.
+    visit '/admin/authors?q[active_eq]=false'
+    expect(find('#q_active_input', visible: :all)[:class]).to include('select')
+    expect(page).to have_css('#q_active_input', visible: :hidden)
+  end
+
   it 'reorders filters by drag and drop and keeps the order' do
     open_panel
     drag('q_created_at_input', onto: 'q_name_input')
@@ -126,6 +137,13 @@ describe 'filters visibility', type: :feature do
     expect(form_order).to eq(expected)
     items = all('[data-filters-visibility-item]', visible: :all).map { |item| item['data-filters-visibility-item'] }
     expect(items).to eq(expected)
+  end
+
+  it 'drops a filter below the target when released on its lower half' do
+    open_panel
+    drag('q_name_input', onto: 'q_active_input', below: true)
+
+    expect(form_order).to eq(%w[q_last_name_input q_birthday_input q_active_input q_name_input q_created_at_input])
   end
 
   it 'resets visibility and order' do

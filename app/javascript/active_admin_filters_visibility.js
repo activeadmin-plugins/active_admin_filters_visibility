@@ -51,9 +51,9 @@ export const storage = {
 // are keyed by a class on the filter wrapper: Formtastic's input type
 // ("select", "string", ...) or a class set with `wrapper_html`.
 const hasEnteredValue = (wrapper) =>
-  Array.from(wrapper.querySelectorAll("input")).some((input) => {
+  Array.from(wrapper.querySelectorAll("input, textarea")).some((input) => {
     if (input.disabled || ["hidden", "submit", "button", "reset"].includes(input.type)) return false
-    if (input.type === "checkbox" || input.type === "radio") return input.checked
+    if (input.type === "checkbox" || input.type === "radio") return input.checked && input.value !== ""
     return input.value !== ""
   })
 

@@ -13,7 +13,7 @@ Gem::Specification.new do |s|
 
   s.required_ruby_version = '>= 3.3'
 
-  s.add_dependency 'activeadmin', '>= 4.0.0.beta1', '< 5'
+  s.add_dependency 'activeadmin', '>= 4.0.0.beta1', '< 5.0.0.a'
 
   # Whitelist, not a reject list: a new directory in the repo does not
   # reach consumers until it is named here. The reject form needs a new
