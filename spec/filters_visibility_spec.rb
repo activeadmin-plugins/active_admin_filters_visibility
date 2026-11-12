@@ -1,90 +1,164 @@
-require 'spec_helper'
-
-describe 'filters visibility', type: :feature, js: true do
-
-  # The dummy app's active_admin.js calls
-  # `$('#filters_sidebar_section').activeAdminFiltersVisibility()`, so these
-  # are the filters Active Admin derives from the authors table.
+describe 'filters visibility', type: :feature do
   FILTERS = {
-    'Name' => '#q_name_input',
-    'Last name' => '#q_last_name_input',
-    'Birthday' => '#q_birthday_input',
-    'Created at' => '#q_created_at_input',
-    'Updated at' => '#q_updated_at_input'
+    'q_name_input' => 'Name',
+    'q_last_name_input' => 'Last name',
+    'q_birthday_input' => 'Birthday',
+    'q_active_input' => 'Active',
+    'q_created_at_input' => 'Created at'
   }.freeze
 
-  # The visibility panel is `display: none` until the gear button is clicked.
-  def open_visibility_panel
-    page.find('#filters_sidebar_section .filters-visibility-button').click
-    expect(page).to have_css('.filters-visibility-panel')
+  let(:section) { '#filters_sidebar_section' }
+
+  def theme?
+    defined?(ActiveAdminTheme)
   end
 
-  def visibility_checkbox(label)
-    page.find(".filters-visibility-panel input[type=checkbox][value='#{label}']")
+  def open_panel
+    find("#{section} [data-filters-visibility-toggle]").click
+    expect(page).to have_css('[data-filters-visibility-panel]', visible: :visible)
+  end
+
+  def checkbox(id)
+    find("[data-filters-visibility-checkbox='#{id}']")
+  end
+
+  def form_order
+    page.evaluate_script(<<~JS)
+      Array.from(document.querySelectorAll('#{section} form .filters-form-field')).map((el) => el.id)
+    JS
+  end
+
+  # Chrome DevTools has no HTML5 drag and drop, so dispatch the events.
+  def drag(source_id, onto:, below: false)
+    page.execute_script(<<~JS)
+      const list = document.querySelector('[data-filters-visibility-panel] ul')
+      const source = list.querySelector('[data-filters-visibility-item="#{source_id}"]')
+      const target = list.querySelector('[data-filters-visibility-item="#{onto}"]')
+      const rect = target.getBoundingClientRect()
+      const dataTransfer = new DataTransfer()
+      const fire = (el, type) => el.dispatchEvent(new DragEvent(type, { bubbles: true, cancelable: true, dataTransfer, clientY: #{below ? 'rect.bottom - 1' : 'rect.top + 1'} }))
+      fire(source, 'dragstart')
+      fire(target, 'dragover')
+      fire(target, 'drop')
+      fire(source, 'dragend')
+    JS
   end
 
   before do
     Author.create!(name: 'John', last_name: 'Doe')
-    Author.create!(name: 'Jane', last_name: 'Roe')
-    add_author_resource
     visit '/admin/authors'
   end
 
-  it 'renders the gear button and the visibility panel in the filters sidebar' do
-    expect(page).to have_css('#filters_sidebar_section h3 span.filters-visibility-button')
-    # hidden until the button is clicked
-    expect(page).to have_css('#filters_sidebar_section .panel_contents > .filters-visibility-panel', visible: :hidden)
-    expect(page).to have_css('.filters-visibility-panel > div > strong', text: 'Visibility:', visible: :hidden)
-
-    open_visibility_panel
+  it 'puts the toggle in the header the layout shows' do
+    header = theme? ? "#{section} .panel > .panel-title" : "#{section} > h3.filters-form-title"
+    expect(page).to have_css("#{header}[data-filters-visibility-header] > [data-filters-visibility-toggle]", visible: :visible)
+    expect(page).to have_css('[data-filters-visibility-panel]', visible: :hidden)
+    expect(find("#{section} [data-filters-visibility-toggle]")['aria-expanded']).to eq('false')
   end
 
-  it 'has one checked checkbox per filter and shows every filter' do
-    open_visibility_panel
+  it 'lists every filter, checked, in the panel' do
+    open_panel
 
-    expect(page).to have_css('.filters-visibility-panel input[type=checkbox]', count: FILTERS.size)
-    FILTERS.each do |label, selector|
-      expect(visibility_checkbox(label)).to be_checked
-      expect(page).to have_css(selector)
+    expect(find("#{section} [data-filters-visibility-toggle]")['aria-expanded']).to eq('true')
+    expect(page).to have_css('[data-filters-visibility-checkbox]', count: FILTERS.size)
+    FILTERS.each do |id, label|
+      expect(page).to have_css("[data-filters-visibility-item='#{id}']", text: label)
+      expect(checkbox(id)).to be_checked
+      expect(page).to have_css("##{id}", visible: :visible)
     end
-    expect(page).not_to have_css('.filters-visibility-button.active')
+    expect(page).not_to have_css('[data-filters-visibility-toggle][data-filters-visibility-active]')
   end
 
-  it 'hides a filter when its checkbox is unchecked' do
-    open_visibility_panel
-    visibility_checkbox('Birthday').click
+  it 'hides a filter, keeps it hidden after a reload, and shows it again' do
+    open_panel
+    checkbox('q_birthday_input').uncheck
 
-    expect(page).to have_css('#q_birthday_input', visible: :hidden)
-    expect(page).to have_css('.filters-visibility-button.active')
-    # the other filters are untouched
-    expect(page).to have_css('#q_name_input')
-    expect(page).to have_css('#q_created_at_input')
-  end
-
-  it 'keeps the filter hidden after a page reload' do
-    open_visibility_panel
-    visibility_checkbox('Birthday').click
-    expect(page).to have_css('#q_birthday_input', visible: :hidden)
+    expect(page).to have_css('#q_birthday_input[data-filters-visibility-hidden]', visible: :hidden)
+    expect(page).to have_css('[data-filters-visibility-toggle][data-filters-visibility-active]')
+    expect(page).to have_css('#q_name_input', visible: :visible)
 
     visit '/admin/authors'
-
     expect(page).to have_css('#q_birthday_input', visible: :hidden)
-    expect(page).to have_css('.filters-visibility-button.active')
+    expect(page).to have_css('[data-filters-visibility-toggle][data-filters-visibility-active]')
 
-    open_visibility_panel
-    expect(visibility_checkbox('Birthday')).not_to be_checked
-    expect(visibility_checkbox('Name')).to be_checked
+    open_panel
+    expect(checkbox('q_birthday_input')).not_to be_checked
+    checkbox('q_birthday_input').check
+    expect(page).to have_css('#q_birthday_input', visible: :visible)
+    expect(page).not_to have_css('[data-filters-visibility-toggle][data-filters-visibility-active]')
+
+    visit '/admin/authors'
+    expect(page).to have_css('#q_birthday_input', visible: :visible)
   end
 
-  it 'shows the filter again when the checkbox is re-checked' do
-    open_visibility_panel
-    visibility_checkbox('Birthday').click
+  it 'stores the state per page under a prefixed key' do
+    open_panel
+    checkbox('q_birthday_input').uncheck
     expect(page).to have_css('#q_birthday_input', visible: :hidden)
 
-    visibility_checkbox('Birthday').click
-
-    expect(page).to have_css('#q_birthday_input')
-    expect(page).not_to have_css('.filters-visibility-button.active')
+    stored = page.evaluate_script("localStorage.getItem('active_admin_filters_visibility:/admin/authors')")
+    expect(JSON.parse(stored)).to eq('hidden' => ['q_birthday_input'])
   end
 
+  it 'keeps a hidden filter visible while it has a value' do
+    open_panel
+    checkbox('q_name_input').uncheck
+    checkbox('q_active_input').uncheck
+
+    visit '/admin/authors?q[name_cont]=Jo&q[active_eq]=true'
+
+    expect(page).to have_css('#q_name_input', visible: :visible)
+    expect(page).to have_css('#q_active_input', visible: :visible)
+
+    visit '/admin/authors'
+    expect(page).to have_css('#q_name_input', visible: :hidden)
+    expect(page).to have_css('#q_active_input', visible: :hidden)
+  end
+
+  it 'prefers a registered detector over the built-in one' do
+    open_panel
+    checkbox('q_active_input').uncheck
+
+    # "No" is a selected option with a value, but the yes-only detector
+    # counts it as empty, although the wrapper lists "select" first.
+    visit '/admin/authors?q[active_eq]=false'
+    expect(find('#q_active_input', visible: :all)[:class]).to start_with('select yes-only')
+    expect(page).to have_css('#q_active_input', visible: :hidden)
+  end
+
+  it 'reorders filters by drag and drop and keeps the order' do
+    open_panel
+    drag('q_created_at_input', onto: 'q_name_input')
+
+    expected = %w[q_created_at_input q_name_input q_last_name_input q_birthday_input q_active_input]
+    expect(form_order).to eq(expected)
+
+    visit '/admin/authors'
+    expect(form_order).to eq(expected)
+    items = all('[data-filters-visibility-item]', visible: :all).map { |item| item['data-filters-visibility-item'] }
+    expect(items).to eq(expected)
+  end
+
+  it 'drops a filter below the target when released on its lower half' do
+    open_panel
+    drag('q_name_input', onto: 'q_active_input', below: true)
+
+    expect(form_order).to eq(%w[q_last_name_input q_birthday_input q_active_input q_name_input q_created_at_input])
+  end
+
+  it 'resets visibility and order' do
+    open_panel
+    checkbox('q_birthday_input').uncheck
+    drag('q_created_at_input', onto: 'q_name_input')
+
+    find('[data-filters-visibility-reset]').click
+
+    expect(page).to have_css('#q_birthday_input', visible: :visible)
+    expect(form_order).to eq(FILTERS.keys)
+    expect(page).not_to have_css('[data-filters-visibility-toggle][data-filters-visibility-active]')
+
+    visit '/admin/authors'
+    expect(page).to have_css('#q_birthday_input', visible: :visible)
+    expect(form_order).to eq(FILTERS.keys)
+  end
 end
