@@ -287,7 +287,7 @@ function autoSetup() {
 // importing this one still gets its settings applied. setup() runs once per
 // section, so the load fallback is harmless.
 if (document.readyState === "complete") {
-  autoSetup()
+  window.setTimeout(autoSetup, 0)
 } else {
   document.addEventListener("DOMContentLoaded", autoSetup, { once: true })
   window.addEventListener("load", autoSetup, { once: true })
