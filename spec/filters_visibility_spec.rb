@@ -146,6 +146,23 @@ describe 'filters visibility', type: :feature do
     expect(form_order).to eq(%w[q_last_name_input q_birthday_input q_active_input q_name_input q_created_at_input])
   end
 
+  it 'reorders filters with Alt+Up and Alt+Down and keeps the order' do
+    open_panel
+    # Focus without a click, which would toggle the checkbox.
+    page.execute_script("document.querySelector('[data-filters-visibility-checkbox=\"q_birthday_input\"]').focus()")
+    page.send_keys(%i[alt up])
+    expect(form_order).to eq(%w[q_name_input q_birthday_input q_last_name_input q_active_input q_created_at_input])
+    expect(page.evaluate_script('document.activeElement.dataset.filtersVisibilityCheckbox')).to eq('q_birthday_input')
+
+    page.send_keys(%i[alt down], %i[alt down])
+    expected = %w[q_name_input q_last_name_input q_active_input q_birthday_input q_created_at_input]
+    expect(form_order).to eq(expected)
+    expect(checkbox('q_birthday_input')).to be_checked
+
+    visit '/admin/authors'
+    expect(form_order).to eq(expected)
+  end
+
   it 'resets visibility and order' do
     open_panel
     checkbox('q_birthday_input').uncheck

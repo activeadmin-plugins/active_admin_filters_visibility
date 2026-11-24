@@ -18,7 +18,7 @@ export const defaults = {
   buttonLabel: "Choose visible filters",
   title: "Visible filters",
   resetLabel: "Reset",
-  orderHint: "Drag filters to reorder them"
+  orderHint: "Drag filters, or press Alt+Up or Alt+Down on one, to reorder them"
 }
 
 export const storage = {
@@ -190,6 +190,7 @@ export function setup(section, options = {}) {
     checkbox.type = "checkbox"
     checkbox.value = id
     checkbox.setAttribute("data-filters-visibility-checkbox", id)
+    if (settings.ordering) checkbox.setAttribute("aria-keyshortcuts", "Alt+ArrowUp Alt+ArrowDown")
     label.append(checkbox, document.createTextNode(` ${labelFor(byId.get(id))}`))
     item.appendChild(label)
     if (settings.ordering) item.draggable = true
@@ -272,6 +273,21 @@ export function setup(section, options = {}) {
     list.addEventListener("dragend", () => {
       dragged?.removeAttribute("data-filters-visibility-dragging")
       dragged = null
+    })
+    list.addEventListener("keydown", (event) => {
+      const step = { ArrowUp: -1, ArrowDown: 1 }[event.key]
+      const item = event.target.closest("[data-filters-visibility-item]")
+      if (!event.altKey || !step || !item) return
+      event.preventDefault()
+      const ids = order.length ? order.slice() : initialOrder.slice()
+      const from = ids.indexOf(item.getAttribute("data-filters-visibility-item"))
+      const to = from + step
+      if (to < 0 || to >= ids.length) return
+      ids.splice(to, 0, ids.splice(from, 1)[0])
+      order = ids
+      renderOrder()
+      save()
+      event.target.focus()
     })
   }
 

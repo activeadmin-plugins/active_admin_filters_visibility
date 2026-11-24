@@ -86,12 +86,12 @@ defaults.title = "Filtres visibles"
 | `autoInit` | `true` | Set up the filters sidebar on page load. Set to `false` to call `setup()` yourself. |
 | `selector` | `"#filters_sidebar_section"` | The sidebar section to set up on page load. |
 | `storageKey` | `() => window.location.pathname` | The key the state is saved under. One key per page by default. |
-| `ordering` | `false` | Let admins reorder filters by drag and drop. |
+| `ordering` | `false` | Let admins reorder filters by drag and drop, or with Alt+Up and Alt+Down on a focused filter. |
 | `icon` | sliders SVG | HTML for the toggle button. |
 | `buttonLabel` | `"Choose visible filters"` | The toggle's `aria-label` and tooltip. |
 | `title` | `"Visible filters"` | The panel title. |
 | `resetLabel` | `"Reset"` | The reset button text. |
-| `orderHint` | `"Drag filters to reorder them"` | The hint shown when ordering is on. |
+| `orderHint` | `"Drag filters, or press Alt+Up or Alt+Down on one, to reorder them"` | The hint shown when ordering is on. |
 
 To set up a section by hand, pass options for that call only:
 
