@@ -1,0 +1,10 @@
+# The suite against active_admin_theme 4, which wraps the filters sidebar in a
+# panel. The theme is not released for ActiveAdmin 4 yet, so it comes from git;
+# ACTIVE_ADMIN_THEME_PATH points it at a local checkout instead.
+eval_gemfile File.expand_path('../Gemfile', __dir__)
+
+if ENV['ACTIVE_ADMIN_THEME_PATH']
+  gem 'active_admin_theme', path: ENV['ACTIVE_ADMIN_THEME_PATH']
+else
+  gem 'active_admin_theme', github: 'senid231/active_admin_theme', branch: 'activeadmin-v4'
+end
