@@ -1,6 +1,6 @@
 {
   "name": "@activeadmin-plugins/active_admin_filters_visibility",
-  "version": "1.2.0",
+  "version": "1.3.0",
   "description": "Extension for activeadmin gem to hide any filters from sidebar-filters panel",
   "main": "src/active_admin_filters_visibility.js",
   "repository": "git@github.com:activeadmin-plugins/active_admin_filters_visibility.git",
