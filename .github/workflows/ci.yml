@@ -9,7 +9,7 @@ permissions:
 
 jobs:
   test:
-    name: Ruby ${{ matrix.ruby }} / Rails ${{ matrix.rails }} / AA ${{ matrix.activeadmin }}
+    name: Ruby ${{ matrix.ruby }} / Rails ${{ matrix.rails }} / ${{ matrix.layout }}
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
@@ -19,12 +19,17 @@ jobs:
         ruby: ['3.3', '3.4', '4.0']
         # Rails 7.2 went eol 2026-08-09; 8.2 is not released yet.
         rails: ['8.0.0', '8.1.0']
-        # Every activeadmin 3.2+ resolves and passes against Rails 8.0 and 8.1,
-        # so no exclude rules are needed.
-        activeadmin: ['3.2.0', '3.3.0', '3.4.0', '3.5.0']
+        # Stock ActiveAdmin 4, and ActiveAdmin 4 with active_admin_theme,
+        # which wraps the filters sidebar in a panel.
+        layout: ['stock', 'theme']
+        include:
+          - layout: stock
+            gemfile: Gemfile
+          - layout: theme
+            gemfile: gemfiles/active_admin_theme.gemfile
     env:
       RAILS: ${{ matrix.rails }}
-      AA: ${{ matrix.activeadmin }}
+      BUNDLE_GEMFILE: ${{ github.workspace }}/${{ matrix.gemfile }}
     steps:
       - uses: actions/checkout@v4
       - uses: ruby/setup-ruby@v1
@@ -32,4 +37,4 @@ jobs:
           ruby-version: ${{ matrix.ruby }}
           bundler-cache: true
       - name: Run tests
-        run: bundle exec rspec spec
+        run: bundle exec rspec

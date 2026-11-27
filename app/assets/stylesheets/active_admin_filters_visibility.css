@@ -1,0 +1,132 @@
+/*
+ * Styles for active_admin_filters_visibility. Plain CSS: import it into the
+ * ActiveAdmin Tailwind entry file after `@import "tailwindcss"`.
+ *
+ * Colors are custom properties. They follow active_admin_theme's `--aat-*`
+ * colors when the theme is present and fall back to ActiveAdmin 4's grays.
+ * Dark mode keys on the `.dark` class, as ActiveAdmin 4 does.
+ */
+
+.filters-visibility-header,
+.filters-visibility-panel {
+  --filters-visibility-text: var(--aat-text, #374151);
+  --filters-visibility-muted: var(--aat-text-muted, #6b7280);
+  --filters-visibility-border: var(--aat-border, #e5e7eb);
+  --filters-visibility-surface: var(--aat-surface-2, #f9fafb);
+  --filters-visibility-hover: var(--aat-surface-hover, #f3f4f6);
+  --filters-visibility-accent: var(--aat-link, #2563eb);
+}
+
+:where(.dark, .dark *):is(.filters-visibility-header, .filters-visibility-panel) {
+  --filters-visibility-text: var(--aat-text, #e5e7eb);
+  --filters-visibility-muted: var(--aat-text-muted, #9ca3af);
+  --filters-visibility-border: var(--aat-border, #374151);
+  --filters-visibility-surface: var(--aat-surface-2, #1f2937);
+  --filters-visibility-hover: var(--aat-surface-hover, #374151);
+  --filters-visibility-accent: var(--aat-link, #60a5fa);
+}
+
+.filters-visibility-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+}
+
+.filters-visibility-toggle {
+  display: inline-flex;
+  flex: none;
+  align-items: center;
+  justify-content: center;
+  width: 1.75rem;
+  height: 1.75rem;
+  padding: 0;
+  border: 0;
+  border-radius: 0.25rem;
+  background: transparent;
+  color: var(--filters-visibility-muted);
+  font: inherit;
+  cursor: pointer;
+}
+
+.filters-visibility-toggle:hover,
+.filters-visibility-toggle[aria-expanded="true"] {
+  background-color: var(--filters-visibility-hover);
+  color: var(--filters-visibility-text);
+}
+
+.filters-visibility-toggle:focus-visible {
+  outline: 2px solid var(--filters-visibility-accent);
+  outline-offset: 1px;
+}
+
+/* Some filters are hidden. */
+.filters-visibility-toggle-active,
+.filters-visibility-toggle-active:hover {
+  color: var(--filters-visibility-accent);
+}
+
+.filters-visibility-panel {
+  margin-bottom: 1rem;
+  padding: 0.5rem 0.625rem;
+  border: 1px solid var(--filters-visibility-border);
+  border-radius: 0.375rem;
+  background-color: var(--filters-visibility-surface);
+  color: var(--filters-visibility-text);
+  font-size: 0.875rem;
+  font-weight: normal;
+}
+
+.filters-visibility-panel[hidden],
+.filters-form-field[data-filters-visibility-hidden] {
+  display: none;
+}
+
+.filters-visibility-panel-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  margin-bottom: 0.375rem;
+}
+
+.filters-visibility-reset {
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: var(--filters-visibility-accent);
+  font: inherit;
+  cursor: pointer;
+}
+
+.filters-visibility-reset:hover {
+  text-decoration: underline;
+}
+
+.filters-visibility-list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.filters-visibility-item label {
+  display: flex;
+  align-items: center;
+  gap: 0.375rem;
+  padding: 0.125rem 0;
+  cursor: pointer;
+}
+
+.filters-visibility-item[draggable="true"] label {
+  cursor: grab;
+}
+
+.filters-visibility-item[data-filters-visibility-dragging] {
+  opacity: 0.5;
+}
+
+.filters-visibility-hint {
+  margin: 0.375rem 0 0;
+  color: var(--filters-visibility-muted);
+  font-size: 0.75rem;
+}
